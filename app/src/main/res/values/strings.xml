@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">TokenInformation</string>
+    <string name="download_app_name">Token Pocket</string>
+
+    <string name="hot_information">Hot Information</string>
+    <string name="share">Share</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="open_with">Open With</string>
+
+    <string name="share_to">Share To</string>
+    <string name="copied">Copied</string>
+    <string name="web_select">Select Web</string>
+
+    <string name="no_app">No suitable third party applications</string>
+    <string name="no_browser">No Browser</string>
+
+    <string name="update_hint">Update hint</string>
+    <string name="new_version_is_detected">New version is detected,安装包大小为：%1$s, %2$s</string>
+    <string name="upgrade_now">Upgrade Now</string>
+    <string name="update_confirm_msg_ex">是否同意更新？约%1$s M流量</string>
+    <string name="data_network">数据网络</string>
+    <string name="update_confirm_title">提示</string>
+    <string name="download_tips">下载提示</string>
+    <string name="download_progress">当前下载进度：</string>
+    <string name="install">安装</string>
+    <string name="recommended_upgrade">推荐升级</string>
+    <string name="strongly_recommended_upgrade">强烈推荐升级</string>
+    <string name="can_be_upgraded_later">可稍后升级</string>
+
+</resources>
