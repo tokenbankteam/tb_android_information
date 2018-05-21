@@ -18,11 +18,11 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.tokenbank.tokeninformation.model.Article;
 import com.tokenbank.tokeninformation.net.manager.RetrofitHelper;
+import com.tokenbank.tokeninformation.util.SnackBarUtil;
 import com.tokenbank.tokeninformation.util.upgrade.UpgradeManager;
 
+import io.reactivex.functions.Consumer;
 import java.util.List;
-
-import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -71,12 +71,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getArticlesFromNet() {
-        RetrofitHelper.getArticles().subscribe(new Action1<List<Article>>() {
-            @Override
-            public void call(List<Article> articles) {
+        RetrofitHelper.getArticles().subscribe(new Consumer<List<Article>>() {
+            @Override public void accept(List<Article> articles) throws Exception {
                 mAdapter.setData(articles);
                 mAdapter.notifyDataSetChanged();
                 slRefresh.setRefreshing(false);
+            }
+        }, new Consumer<Throwable>() {
+            @Override public void accept(Throwable throwable) throws Exception {
+                SnackBarUtil.show(slRefresh,throwable.getMessage());
             }
         });
     }
