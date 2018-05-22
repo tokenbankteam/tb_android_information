@@ -1,12 +1,19 @@
 package com.tokenbank.tokeninformation.util.upgrade.common;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.tokenbank.tokeninformation.R;
 
 import java.io.File;
@@ -60,17 +67,83 @@ public class UpgradeUtils {
         }
         File apkFile = new File(UpgradeUtils.getDownloadPath(context), apkName);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!checkPermission(context)) {
+                //弹框提示用户开启权限
+                showPermissionAskDialog(context);
+                return;
+            }
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             Uri contentUri =
-                    FileProvider.getUriForFile(context, context.getPackageName() + ".fileProvider",
-                            apkFile);
-            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
-        } else {
-            intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
+                    FileProvider.getUriForFile(context,
+                            context.getPackageName() + ".fileProvider", apkFile);
+
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            //添加这一句表示对目标应用临时授权该Uri所代表的文件
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            //在AndroidManifest中的android:authorities值
+            Uri apkUri = FileProvider.getUriForFile(context,
+                    context.getPackageName() + ".fileProvider", apkFile);
+            Intent install = new Intent(Intent.ACTION_VIEW);
+            install.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);//添加这一句表示对目标应用临时授权该Uri所代表的文件
+            install.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            context.startActivity(install);
+        } else {
+            Intent install = new Intent(Intent.ACTION_VIEW);
+            install.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
+            install.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(install);
         }
-        context.startActivity(intent);
+    }
+
+    /**
+     * 弹框询问开启权限
+     *
+     * @param context
+     */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static void showPermissionAskDialog(final Context context) {
+        //弹框询问获取安装权限
+        new MaterialDialog.Builder(context)
+                .content(context.getString(R.string.ask_install_app_permission))
+                .positiveText(R.string.confirm)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog,
+                                        @NonNull DialogAction which) {
+                        dialog.dismiss();
+                        startInstallPermissionSettingActivity(context);
+                    }
+                })
+                .negativeText(R.string.cancel)
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog,
+                                        @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static void startInstallPermissionSettingActivity(Context context) {
+        Uri packageURI = Uri.parse("package:" + context.getPackageName());
+        //注意这个是8.0新API
+        Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, packageURI);
+        Activity activity = (Activity) context;
+        activity.startActivityForResult(intent,
+                Constants.UNKNOWN_APP_INSTALL_REQUEST_CODE);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static boolean checkPermission(Context context) {
+        return context.getPackageManager().canRequestPackageInstalls();
     }
 
     public static boolean isNewestApkDownloaded(String downloadPath, String hashCode) {

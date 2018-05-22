@@ -1,5 +1,6 @@
 package com.tokenbank.tokeninformation;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -19,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.tokenbank.tokeninformation.model.Article;
 import com.tokenbank.tokeninformation.net.manager.RetrofitHelper;
 import com.tokenbank.tokeninformation.util.upgrade.UpgradeManager;
+import com.tokenbank.tokeninformation.util.upgrade.common.Constants;
 
 import java.util.List;
 
@@ -154,5 +156,14 @@ public class MainActivity extends AppCompatActivity {
 
     interface OnItemClickListener {
         void onItemClick(int position);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == Constants.UNKNOWN_APP_INSTALL_REQUEST_CODE) {
+            //再次执行安装流程，包含权限判等
+            UpgradeManager.getInstance().startInstall(MainActivity.this);
+        }
     }
 }

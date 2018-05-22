@@ -22,6 +22,9 @@ public class UpgradeInfo {
     @SerializedName("size")
     private long mSize;
 
+    //用于辅助的字段，非json返回
+    private String apkName;
+
     public String getPlatform() {
         return mPlatform;
     }
@@ -74,6 +77,14 @@ public class UpgradeInfo {
     public UpgradeInfo setUpgradeMode(int upgradeMode) {
         this.mUpgradeMode = upgradeMode;
         return this;
+    }
+
+    public String getApkName() {
+        return apkName;
+    }
+
+    public void setApkName(String apkName) {
+        this.apkName = apkName;
     }
 
     public String toString() {

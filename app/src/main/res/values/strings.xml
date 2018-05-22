@@ -27,4 +27,9 @@
     <string name="strongly_recommended_upgrade">强烈推荐升级</string>
     <string name="can_be_upgraded_later">可稍后升级</string>
 
+    <string name="ask_install_app_permission">To install the application, you need to open the unknown source permissions. Please set up the open access.</string>
+
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+
 </resources>

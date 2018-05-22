@@ -14,4 +14,5 @@ public class Constants {
     public static final int PROGRESS_FINISH = 100;
     public static final String DOWNLOAD_DIR = "/download";
     public static final String SERVER_BASE_URL = "http://testserver.mytokenpocket.vip/v1/upgrade";
+    public static final int UNKNOWN_APP_INSTALL_REQUEST_CODE = 10086;
 }
