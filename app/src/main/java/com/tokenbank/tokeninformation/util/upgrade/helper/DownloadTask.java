@@ -24,7 +24,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
         mContext = context;
         mUpgradeInfo = upgradeInfo;
         mDialog = dialog;
-        mApkName = UpgradeUtils.getApkName(context, mUpgradeInfo.getVersion());
+        mApkName = upgradeInfo.getApkName();
     }
 
     @Override protected Boolean doInBackground(String... args) {
@@ -58,6 +58,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
         super.onPostExecute(needUpgrade);
         if (needUpgrade) {
             //when download finished
+            mDialog.updateProgress(100);
             mDialog.downloadFinished();
         }
     }

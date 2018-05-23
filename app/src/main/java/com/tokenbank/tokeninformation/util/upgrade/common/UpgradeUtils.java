@@ -2,19 +2,23 @@ package com.tokenbank.tokeninformation.util.upgrade.common;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
+import android.view.View;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.tokenbank.tokeninformation.R;
+import com.tokenbank.tokeninformation.dialog.PromptDialog;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -66,28 +70,24 @@ public class UpgradeUtils {
             return;
         }
         File apkFile = new File(UpgradeUtils.getDownloadPath(context), apkName);
-        Intent intent = new Intent(Intent.ACTION_VIEW);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!checkPermission(context)) {
                 //弹框提示用户开启权限
                 showPermissionAskDialog(context);
                 return;
             }
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            Uri contentUri =
-                    FileProvider.getUriForFile(context,
-                            context.getPackageName() + ".fileProvider", apkFile);
-
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            //添加这一句表示对目标应用临时授权该Uri所代表的文件
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
+            //在AndroidManifest中的android:authorities值
+            Uri apkUri = FileProvider.getUriForFile(context,
+                    "com.tokenbank.tokeninformation.fileprovider", apkFile);
+            Intent install = new Intent(Intent.ACTION_VIEW);
+            install.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);//添加这一句表示对目标应用临时授权该Uri所代表的文件
+            install.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            context.startActivity(install);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             //在AndroidManifest中的android:authorities值
             Uri apkUri = FileProvider.getUriForFile(context,
-                    context.getPackageName() + ".fileProvider", apkFile);
+                    "com.tokenbank.tokeninformation.fileprovider", apkFile);
             Intent install = new Intent(Intent.ACTION_VIEW);
             install.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);//添加这一句表示对目标应用临时授权该Uri所代表的文件
@@ -109,23 +109,16 @@ public class UpgradeUtils {
     @RequiresApi(api = Build.VERSION_CODES.O)
     private static void showPermissionAskDialog(final Context context) {
         //弹框询问获取安装权限
-        new MaterialDialog.Builder(context)
+        //弹框询问获取安装权限
+        new PromptDialog.Builder(context)
+                .drawable(R.drawable.ic_warn)
                 .content(context.getString(R.string.ask_install_app_permission))
-                .positiveText(R.string.confirm)
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                .positiveText(context.getString(R.string.confirm))
+                .positiveListener(new PromptDialog.Builder.OnClickListener() {
                     @Override
-                    public void onClick(@NonNull MaterialDialog dialog,
-                                        @NonNull DialogAction which) {
+                    public void onPositiveClick(Dialog dialog, View view) {
                         dialog.dismiss();
                         startInstallPermissionSettingActivity(context);
-                    }
-                })
-                .negativeText(R.string.cancel)
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog,
-                                        @NonNull DialogAction which) {
-                        dialog.dismiss();
                     }
                 })
                 .show();
@@ -153,8 +146,11 @@ public class UpgradeUtils {
         File dir = new File(downloadPath);
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
+            if (files == null || files.length == 0) {
+                return false;
+            }
             for (File f : files) {
-                if (f.getName().contains("TokenPocket") && hashCode.equals(getMd5ByFile(f))) {
+                if (hashCode.equals(getMd5ByFile(f))) {
                     return true;
                 }
             }
@@ -232,16 +228,10 @@ public class UpgradeUtils {
     }
 
     /**
-     * 保存的Apk 名称
-     */
-    public static String getApkName(Context context, String version) {
-        return context.getString(R.string.download_app_name) + "_V" + version + ".apk";
-    }
-
-    /**
-     * 获取下载的路径
+     * 获取下载的路径：这里使用内部路径存储，不要使用外部路径，避免读写权限
      */
     public static String getDownloadPath(Context context) {
         return context.getExternalFilesDir(null) + Constants.DOWNLOAD_DIR;
     }
+
 }

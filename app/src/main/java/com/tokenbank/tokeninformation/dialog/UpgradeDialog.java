@@ -88,6 +88,7 @@ public class UpgradeDialog extends Dialog {
      * 显示下载进度的弹框
      */
     private void showDownloadProgressDialog(UpgradeInfo upgradeInfo) {
+        this.dismiss();
         DownloadProgressDialog dialog = new DownloadProgressDialog(getContext(), upgradeInfo);
         dialog.show();
     }

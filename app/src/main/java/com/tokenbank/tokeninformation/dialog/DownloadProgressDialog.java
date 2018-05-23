@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -13,6 +14,8 @@ import com.tokenbank.tokeninformation.R;
 import com.tokenbank.tokeninformation.util.upgrade.common.UpgradeInfo;
 import com.tokenbank.tokeninformation.util.upgrade.common.UpgradeUtils;
 import com.tokenbank.tokeninformation.util.upgrade.helper.DownloadTask;
+
+import java.io.File;
 
 /**
  * Author: Clement
@@ -51,8 +54,7 @@ public class DownloadProgressDialog extends Dialog {
             @Override
             public void onClick(View v) {
                 //安装app
-                UpgradeUtils.startInstall(getContext(),
-                        UpgradeUtils.getApkName(getContext(), mUpgradeInfo.getVersion()));
+                UpgradeUtils.startInstall(getContext(), mUpgradeInfo.getApkName());
             }
         });
     }
@@ -84,8 +86,13 @@ public class DownloadProgressDialog extends Dialog {
         //更新UI
         tvInstall.setVisibility(View.VISIBLE);
         //安装app
-        UpgradeUtils.startInstall(getContext(),
-            UpgradeUtils.getApkName(getContext(), mUpgradeInfo.getVersion()));
+        File f = new File(UpgradeUtils.getDownloadPath(getContext()) + mUpgradeInfo.getApkName());
+        if (f.exists() && f.isFile()) {
+            if (TextUtils.equals(mUpgradeInfo.getHashCode(), UpgradeUtils.getMd5ByFile(f))) {
+                UpgradeUtils.startInstall(getContext(), mUpgradeInfo.getApkName());
+                return;
+            }
+        }
     }
 
     public void setProgressListener(OnProgressListener listener) {
