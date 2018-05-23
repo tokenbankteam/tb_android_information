@@ -1,13 +1,11 @@
 package com.tokenbank.tokeninformation.net.manager;
 
 import com.tokenbank.tokeninformation.net.UrlConfig;
-
 import java.util.concurrent.TimeUnit;
-
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
@@ -33,8 +31,6 @@ public class BaseRetrofit {
 
     /**
      * 创建HttpService
-     *
-     * @return
      */
     public static HttpService getService() {
         if (service == null) {
@@ -54,15 +50,14 @@ public class BaseRetrofit {
         //获取build
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         //打印日志
-//        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-//        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-//        builder.addInterceptor(loggingInterceptor);
-        //设置超时
-        builder.connectTimeout(15, TimeUnit.SECONDS);
-        builder.readTimeout(20, TimeUnit.SECONDS);
-        builder.writeTimeout(20, TimeUnit.SECONDS);
-        //错误重连
-        builder.retryOnConnectionFailure(true);
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        builder.addInterceptor(interceptor)
+            .connectTimeout(15, TimeUnit.SECONDS) //设置超时
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true);  //错误重连
+
         return builder.build();
     }
 
@@ -71,12 +66,10 @@ public class BaseRetrofit {
      */
     private static Retrofit getRetrofit() {
         //配置retrofit
-        return new Retrofit.Builder()
-                .baseUrl(UrlConfig.BASE_URL)
-                .client(getOkHttp())
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .build();
+        return new Retrofit.Builder().baseUrl(UrlConfig.BASE_URL)
+            .client(getOkHttp())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build();
     }
-
 }
